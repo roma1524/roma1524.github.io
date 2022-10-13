@@ -288,6 +288,53 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
   new MenuItems();
+
+  // Forms
+
+  const forms = document.querySelectorAll('form');
+  const message = {
+    loading: 'Loading',
+    success: "Success! We'll call you",
+    failure: 'Something wrong'
+  };
+  forms.forEach(form => {
+    postData(form);
+  });
+  function postData(form) {
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const statusMessage = document.createElement('div');
+      statusMessage.classList.add('status');
+      statusMessage.textContent = message.loading;
+      form.append(statusMessage);
+      const request = new XMLHttpRequest();
+      request.open('POST', 'server.php');
+      request.setRequestHeader('Content-type', 'application/json');
+      const formData = new FormData(form);
+      const object = {};
+      formData.forEach(function (value, key) {
+        object[key] = value;
+      });
+      const dataToJson = JSON.stringify(object);
+      request.send(dataToJson);
+      request.addEventListener('load', () => {
+        if (request.status === 200) {
+          console.log(request.response);
+          statusMessage.textContent = message.success;
+          form.reset();
+          setTimeout(() => {
+            statusMessage.remove();
+          }, 2000);
+        } else {
+          statusMessage.textContent = message.failure;
+          form.reset();
+          setTimeout(() => {
+            statusMessage.remove();
+          }, 2000);
+        }
+      });
+    });
+  }
 });
 
 /***/ })
