@@ -285,6 +285,7 @@ a {
   color: rgba(0, 0, 0, 0.5);
 }
 .offer__slider-wrapper {
+  position: relative;
   width: 100%;
   margin-top: 15px;
   box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.25);
@@ -310,6 +311,35 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.offer .pagination {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 0;
+  display: flex;
+  justify-content: center;
+}
+.offer .pagination__wrapp {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.offer .pagination__wrapp span {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 1px solid #54ED39;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.offer .pagination__wrapp span:hover {
+  cursor: pointer;
+  background-color: #54ED39;
+}
+.offer .pagination__wrapp .active {
+  background-color: #abf89f;
 }
 
 .calculating {
@@ -633,7 +663,11 @@ a {
   margin: 0 auto;
 }
 
-.active {
+.hide {
+  display: none;
+}
+
+.show {
   display: block;
 }
 

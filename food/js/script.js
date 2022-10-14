@@ -131,7 +131,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Timer
 
-  const deadLine = '2022-10-14';
+  const deadLine = '2022-10-18';
   function getTimeRemaining(endTime) {
     let days, hours, minutes, seconds;
     const t = Date.parse(endTime) - Date.parse(new Date());
@@ -179,10 +179,10 @@ window.addEventListener("DOMContentLoaded", () => {
   // Modal
 
   const btns = document.querySelectorAll('[data-modal]'),
-    btnClose = document.querySelector('[data-close]'),
     modalWindow = document.querySelector('.modal');
   function openModal() {
-    modalWindow.classList.toggle('active');
+    modalWindow.classList.add('show');
+    modalWindow.classList.remove('hide');
     document.body.style.overflow = 'hidden';
     clearInterval(modalTimerId);
   }
@@ -190,17 +190,17 @@ window.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener('click', openModal);
   });
   function closeModalWindow() {
-    modalWindow.classList.toggle('active');
+    modalWindow.classList.add('hide');
+    modalWindow.classList.remove('show');
     document.body.style.overflow = '';
   }
-  btnClose.addEventListener('click', closeModalWindow);
   modalWindow.addEventListener('click', event => {
-    if (event.target === modalWindow) {
+    if (event.target === modalWindow || event.target.getAttribute('data-close') == '') {
       closeModalWindow();
     }
   });
   document.addEventListener('keydown', event => {
-    if (event.code === 'Escape' && modalWindow.classList.contains('active')) {
+    if (event.code === 'Escape' && modalWindow.classList.contains('show')) {
       closeModalWindow();
     }
   });
@@ -215,126 +215,204 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Add menu item in html (OOP)
 
-  class MenuItems {
-    constructor() {
-      let container = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '.menu__field .container';
-      this.container = container;
-      this.menuItemsArr = [];
-      this._fetchMenu();
-      this.render();
-    }
-    _fetchMenu() {
-      this.menuItemsArr = [{
-        imgScr: 'img/tabs/vegy.jpg',
-        title: 'Меню "Фитнес',
-        alt: 'vegy',
-        description: `Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих 
-            овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой 
-            и высоким качеством!`,
-        price: '229'
-      }, {
-        imgScr: 'img/tabs/elite.jpg',
-        title: 'Меню “Премиум”',
-        alt: 'elite',
-        description: `В меню “Премиум” мы используем не только красивый дизайн упаковки, но и
-          качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в
-          ресторан!`,
-        price: '550'
-      }, {
-        imgScr: 'img/tabs/post.jpg',
-        title: 'Меню “Премиум”',
-        alt: 'post',
-        description: `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие
-          продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество
-          белков за счет тофу и импортных вегетарианских стейков.`,
-        price: '430'
-      }];
-    }
-    render() {
-      const menuItemContainer = document.querySelector(this.container);
-      this.menuItemsArr.forEach(item => {
-        const element = new ItemMenu(item);
-        menuItemContainer.innerHTML += element.render();
-      });
-    }
-  }
-  class ItemMenu {
-    constructor(_ref) {
-      let {
-        imgScr,
-        title,
-        description,
-        price,
-        alt
-      } = _ref;
-      this.imgSrc = imgScr;
-      this.title = title;
-      this.description = description;
-      this.price = price;
+  class MenuCard {
+    constructor(src, alt, title, descr, price, parentSelector) {
+      this.src = src;
       this.alt = alt;
+      this.title = title;
+      this.descr = descr;
+      this.price = price;
+      for (var _len = arguments.length, classes = new Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
+        classes[_key - 6] = arguments[_key];
+      }
+      this.classes = classes;
+      this.parent = document.querySelector(parentSelector);
+      this.transfer = 27;
+      this.changeToUAH();
+    }
+    changeToUAH() {
+      this.price = this.price * this.transfer;
     }
     render() {
-      return `<div class="menu__item">
-                <img src=${this.imgSrc} alt=${this.alt}>
+      const element = document.createElement('div');
+      if (this.classes.length === 0) {
+        this.classes = "menu__item";
+        element.classList.add(this.classes);
+      } else {
+        this.classes.forEach(className => element.classList.add(className));
+      }
+      element.innerHTML = `
+                <img src=${this.src} alt=${this.alt}>
                 <h3 class="menu__item-subtitle">${this.title}</h3>
-                <div class="menu__item-descr">${this.description}
-                </div>
+                <div class="menu__item-descr">${this.descr}</div>
                 <div class="menu__item-divider"></div>
                 <div class="menu__item-price">
                     <div class="menu__item-cost">Цена:</div>
                     <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
                 </div>
-            </div>`;
+            `;
+      this.parent.append(element);
     }
   }
-  new MenuItems();
+  getResource('http://localhost:3000/menu').then(data => {
+    data.forEach(_ref => {
+      let {
+        img,
+        altimg,
+        title,
+        descr,
+        price
+      } = _ref;
+      new MenuCard(img, altimg, title, descr, price, ".menu .container").render();
+    });
+  });
 
   // Forms
 
   const forms = document.querySelectorAll('form');
   const message = {
-    loading: 'Loading',
+    loading: 'img/form/spinner.svg',
     success: "Success! We'll call you",
     failure: 'Something wrong'
   };
   forms.forEach(form => {
-    postData(form);
+    bindPostData(form);
   });
-  function postData(form) {
+  const postData = async (url, data) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json; charset=utf-8'
+      },
+      body: data
+    });
+    return await res.json();
+  };
+  async function getResource(url) {
+    let res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+    }
+    return await res.json();
+  }
+  function bindPostData(form) {
     form.addEventListener('submit', event => {
       event.preventDefault();
-      const statusMessage = document.createElement('div');
-      statusMessage.classList.add('status');
-      statusMessage.textContent = message.loading;
-      form.append(statusMessage);
-      const request = new XMLHttpRequest();
-      request.open('POST', 'server.php');
-      request.setRequestHeader('Content-type', 'application/json');
+      let statusMessage = document.createElement('img');
+      statusMessage.src = message.loading;
+      statusMessage.style.cssText = `
+      display: block;
+      margin: 0 auto;`;
+      form.insertAdjacentElement('afterend', statusMessage);
       const formData = new FormData(form);
-      const object = {};
-      formData.forEach(function (value, key) {
-        object[key] = value;
-      });
-      const dataToJson = JSON.stringify(object);
-      request.send(dataToJson);
-      request.addEventListener('load', () => {
-        if (request.status === 200) {
-          console.log(request.response);
-          statusMessage.textContent = message.success;
-          form.reset();
-          setTimeout(() => {
-            statusMessage.remove();
-          }, 2000);
-        } else {
-          statusMessage.textContent = message.failure;
-          form.reset();
-          setTimeout(() => {
-            statusMessage.remove();
-          }, 2000);
-        }
+      const json = JSON.stringify(Object.fromEntries(formData.entries())); // Преобразуем объект FormData в формат JSON
+
+      postData('http://localhost:3000/requests', json).then(data => {
+        console.log(data);
+        showMessage(message.success);
+      }).catch(() => {
+        showMessage(message.failure);
+      }).finally(() => {
+        form.reset();
+        statusMessage.remove();
       });
     });
   }
+  function showMessage(message) {
+    const elementToHide = document.querySelector('.modal__dialog');
+    elementToHide.classList.add('hide');
+    openModal();
+    const thanksModal = document.createElement('div');
+    thanksModal.classList.add('modal__dialog');
+    thanksModal.innerHTML = `<div class='modal__content'>
+                              <div class="modal__close" data-close>X</div>
+                              <div class="modal__title">${message}</div>
+                              </div>`;
+    document.querySelector('.modal').append(thanksModal);
+    setTimeout(() => {
+      thanksModal.remove();
+      elementToHide.classList.add('show');
+      elementToHide.classList.remove('hide');
+      closeModalWindow();
+    }, 4000);
+  }
+
+  // Slider and pagination
+
+  const slides = document.querySelectorAll('.offer__slide'),
+    prevBtn = document.querySelector('.offer__slider-prev'),
+    nextBtn = document.querySelector('.offer__slider-next'),
+    currentSlid = document.querySelector('#current'),
+    totalSlide = document.querySelector('#total'),
+    slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+    slidesField = document.querySelector('.offer__slider-inner'),
+    width = window.getComputedStyle(slidesWrapper).width;
+  let slidIndex = 1;
+  let offset = 0;
+  slidesField.style.width = 100 * slides.length + '%';
+  slidesField.style.display = 'flex';
+  slidesField.style.transition = '.5s all';
+  slidesWrapper.style.overflow = 'hidden';
+  slides.forEach(slide => slide.style.width = width);
+  function setZero() {
+    if (slides.length > 10) {
+      totalSlide.textContent = slides.length;
+      currentSlid.textContent = slidIndex;
+    } else {
+      totalSlide.textContent = `0${slides.length}`;
+      currentSlid.textContent = `0${slidIndex}`;
+    }
+  }
+  setZero();
+
+  // ------------------------------------- Pagination-------------------------------------------------
+  const divElement = document.createElement('div'),
+    divElementParent = document.querySelector('.pagination');
+  divElement.classList.add('pagination__wrapp');
+  for (let i = 0; i < slides.length; i++) {
+    i == 0 ? divElement.innerHTML += `<span class='pagination_span active' data-slide-to=${i + 1}></span>` : divElement.innerHTML += `<span class='pagination_span' data-slide-to=${i + 1}></span>`;
+  }
+  divElementParent.append(divElement);
+  const paginationDots = document.querySelectorAll('.pagination_span');
+  paginationDots.forEach(dot => {
+    dot.addEventListener('click', event => {
+      const slideTo = event.target.getAttribute('data-slide-to');
+      slidIndex = slideTo;
+      offset = parseInt(width) * (slideTo - 1);
+      slidesField.style.transform = `translateX(-${offset}px)`;
+      setZero();
+      addActiveClassFromDots();
+    });
+  });
+  function addActiveClassFromDots() {
+    paginationDots.forEach(dot => dot.classList.remove('active'));
+    paginationDots[slidIndex - 1].classList.add('active');
+  }
+
+  // ------------------------------------- Pagination-------------------------------------------------
+
+  nextBtn.addEventListener('click', () => {
+    offset == parseInt(width) * (slides.length - 1) ? offset = 0 : offset += parseInt(width);
+    slidesField.style.transform = `translateX(-${offset}px)`;
+    if (slidIndex == slides.length) {
+      slidIndex = 1;
+    } else {
+      slidIndex += 1;
+    }
+    setZero();
+    addActiveClassFromDots();
+  });
+  prevBtn.addEventListener('click', () => {
+    offset == 0 ? offset = parseInt(width) * (slides.length - 1) : offset -= parseInt(width);
+    slidesField.style.transform = `translateX(-${offset}px)`;
+    if (slidIndex == 1) {
+      slidIndex = slides.length;
+    } else {
+      slidIndex -= 1;
+    }
+    setZero();
+    addActiveClassFromDots();
+  });
 });
 
 /***/ })
