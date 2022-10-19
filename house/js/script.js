@@ -65,13 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modalWindow.classList.add('show');
     document.body.style.overflow = 'hidden';
-    document.body.style.marginRight = '17px';
+    // document.body.style.marginRight = '17px';
   }
 
   function closeModalWindow() {
     modalWindow.classList.remove('show');
     document.body.style.overflow = '';
-    document.body.style.marginRight = '0px';
+    // document.body.style.marginRight = '0px';
   }
 
   buttonsFromModal.forEach(btn => {
