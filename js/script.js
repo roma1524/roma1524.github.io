@@ -34,5 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     lines[i].style.width = item.textContent;
   })
 
+  console.log('09.03');
 
 });
